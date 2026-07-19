@@ -45,7 +45,7 @@ table{width:100%;border-collapse:collapse;background:#fff} th,td{padding:11px;bo
 <button class="nav" data-page="manage" onclick="showPage('manage')">資材管理</button>
 <button class="nav" data-page="transfer" onclick="showPage('transfer')">資材移動</button>
 <button class="nav" data-page="setup" onclick="showPage('setup')">初期数入力</button>
-<button class="nav" data-page="add" onclick="showPage('add')">資材追加</button>
+<button class="nav" data-page="add" onclick="showPage('add')">資材マスタ</button>
 <button class="nav" data-page="history" onclick="showPage('history')">履歴</button>
 </nav>
 <main>
@@ -94,8 +94,8 @@ table{width:100%;border-collapse:collapse;background:#fff} th,td{padding:11px;bo
 
 <section id="addPage" class="page">
 <div class="card">
-<h2>資材追加</h2>
-<p>追加した資材は、29・31・32・33号車すべてに自動追加されます。</p>
+<h2>資材マスタ</h2>
+<p>資材の追加・削除を管理します。削除すると全号車から消えます。</p>
 <div class="grid g2">
 <div><label>新しい資材名</label><input id="newMaterial" placeholder="例：養生シート"></div>
 <div><label>各号車の初期数</label><input type="number" id="newInitialQty" min="0" value="0"
@@ -106,6 +106,16 @@ onblur="if(this.value==='')this.value='0';"></div>
 </div>
 <br>
 <button class="primary" onclick="addMaterial()">資材を追加する</button>
+</div>
+
+<div class="card">
+<h2>登録済み資材</h2>
+<div class="table-wrap">
+<table>
+<thead><tr><th>資材名</th><th>操作</th></tr></thead>
+<tbody id="materialMasterBody"></tbody>
+</table>
+</div>
 </div>
 </section>
 
@@ -229,11 +239,87 @@ async function addMaterial(){
  }catch(e){msg(e.message,"error");}
 }
 
+
+function renderMaterialMaster(){
+ const body=document.getElementById("materialMasterBody");
+ if(!body)return;
+ body.innerHTML=materials.length
+  ? materials.map(m=>`<tr>
+      <td>${esc(m)}</td>
+      <td><button class="minus" onclick="deleteMaterial('${String(m).replaceAll("\\","\\\\").replaceAll("'","\\'")}')">削除</button></td>
+    </tr>`).join("")
+  : '<tr><td colspan="2">資材が登録されていません</td></tr>';
+}
+
+async function deleteMaterial(material){
+ const staff=document.getElementById("newMaterialStaff").value||prompt("削除する担当者名を入力してください。","")||"未入力";
+ const first=confirm(`「${material}」を削除しますか？\n\n全号車の一覧と資材マスタから削除されます。`);
+ if(!first)return;
+ const second=confirm(`最終確認です。\n「${material}」の数量・備考も全号車から削除されます。\n元に戻せません。実行しますか？`);
+ if(!second)return;
+
+ try{
+  await apiPost({
+   action:"deleteMaterial",
+   material:material,
+   staff:staff
+  });
+  msg("資材を削除しました");
+  await refresh();
+ }catch(e){msg(e.message,"error");}
+}
+
 function renderHistory(){
  const tf=historyTruck.value,mf=historyMaterial.value;
  const h=historyData.filter(x=>(!tf||String(x.truck).includes(tf))&&(!mf||x.material===mf));
- document.getElementById("historyList").innerHTML=h.length?h.map(x=>`<div class="history-item"><strong>${x.type}｜${x.truck}｜${x.material}</strong><br>${x.before} → ${x.after}${x.note?"｜"+esc(x.note):""}<br><small>${x.date} ${x.time}｜担当：${esc(x.staff)}</small></div>`).join(""):"履歴はありません";
+ document.getElementById("historyList").innerHTML=h.length
+  ? h.map(x=>`<div class="history-item">
+      <label style="display:flex;gap:10px;align-items:flex-start">
+        <input type="checkbox" class="historyCheck" value="${x.rowNumber}" style="width:auto;margin-top:3px">
+        <span>
+          <strong>${x.type}｜${x.truck}｜${x.material}</strong><br>
+          ${x.before} → ${x.after}${x.note?"｜"+esc(x.note):""}<br>
+          <small>${x.date} ${x.time}｜担当：${esc(x.staff)}</small>
+        </span>
+      </label>
+    </div>`).join("")
+  : "履歴はありません";
 }
+
+async function deleteSelectedHistory(){
+ const rows=Array.from(document.querySelectorAll(".historyCheck:checked"))
+  .map(el=>Number(el.value));
+
+ if(rows.length===0){
+  msg("削除する履歴を選択してください","error");
+  return;
+ }
+
+ if(!confirm(`選択した${rows.length}件の履歴を削除しますか？`))return;
+
+ try{
+  await apiPost({
+   action:"deleteHistoryRows",
+   rowNumbers:rows
+  });
+  msg("選択した履歴を削除しました");
+  await refresh();
+ }catch(e){msg(e.message,"error");}
+}
+
+async function clearAllHistory(){
+ const first=confirm("履歴をすべて削除しますか？");
+ if(!first)return;
+ const second=confirm("最終確認です。履歴は元に戻せません。本当に削除しますか？");
+ if(!second)return;
+
+ try{
+  await apiPost({action:"clearHistory"});
+  msg("履歴をすべて削除しました");
+  await refresh();
+ }catch(e){msg(e.message,"error");}
+}
+
 document.getElementById("date").value=today();
 fillSelects();
 document.getElementById("truck").addEventListener("change",renderManage);
