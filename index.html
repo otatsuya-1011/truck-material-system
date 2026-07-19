@@ -120,11 +120,29 @@ onblur="if(this.value==='')this.value='0';"></div>
 </section>
 
 <section id="historyPage" class="page">
-<div class="card"><div class="toolbar no-print">
-<div><label>号車</label><select id="historyTruck"><option value="">すべて</option></select></div>
-<div><label>資材</label><select id="historyMaterial"><option value="">すべて</option></select></div>
-<button class="secondary" onclick="renderHistory()">絞り込み</button>
-</div><h2>更新履歴</h2><div id="historyList"></div></div>
+<div class="card">
+  <div class="toolbar">
+    <div>
+      <label>号車</label>
+      <select id="historyTruck"><option value="">すべて</option></select>
+    </div>
+    <div>
+      <label>資材</label>
+      <select id="historyMaterial"><option value="">すべて</option></select>
+    </div>
+    <button class="secondary" onclick="renderHistory()">絞り込み</button>
+  </div>
+
+  <div class="toolbar" style="justify-content:space-between;margin-top:16px;margin-bottom:12px">
+    <h2 style="margin:0">更新履歴</h2>
+    <div class="actions">
+      <button class="minus" style="min-width:110px" onclick="deleteSelectedHistory()">選択削除</button>
+      <button class="minus" style="min-width:130px" onclick="clearAllHistory()">履歴を全削除</button>
+    </div>
+  </div>
+
+  <div id="historyList"></div>
+</div>
 </section>
 </main>
 
