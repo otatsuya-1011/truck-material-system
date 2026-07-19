@@ -162,15 +162,25 @@ async function apiPost(payload){
 async function refresh(){
  try{
   const j=await apiGet("?action=getAll");
-  materials=j.materials||[]; cloudData=j.data; historyData=j.history||[];
-  renderHome();renderManage();renderSetup();renderHistory();
+  materials=j.materials||[];
+  cloudData=j.data||{};
+  historyData=j.history||[];
+  fillSelects();
+  renderHome();
+  renderManage();
+  renderSetup();
+  renderMaterialMaster();
+  renderHistory();
  }catch(e){msg("通信エラー："+e.message,"error")}
 }
 function showPage(p){
  document.querySelectorAll(".page").forEach(e=>e.classList.remove("active"));
  document.getElementById(p+"Page").classList.add("active");
  document.querySelectorAll(".nav").forEach(e=>e.classList.toggle("active",e.dataset.page===p));
- if(p==="manage")renderManage(); if(p==="setup")renderSetup(); if(p==="history")renderHistory();
+ if(p==="manage")renderManage();
+ if(p==="setup")renderSetup();
+ if(p==="add")renderMaterialMaster();
+ if(p==="history")renderHistory();
 }
 function fillSelects(){
  ["truck","fromTruck","toTruck"].forEach(id=>document.getElementById(id).innerHTML=trucks.map(t=>`<option>${t}</option>`).join(""));
