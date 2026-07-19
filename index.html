@@ -36,6 +36,102 @@ table{width:100%;border-collapse:collapse;background:#fff} th,td{padding:11px;bo
  .card{box-shadow:none;border:0;padding:0} .table-wrap{border:1px solid #000}
  th,td{padding:4px;border:1px solid #000;font-size:10pt} .actions{display:none}
 }
+
+.print-sheet{display:none}
+.print-controls .grid{margin-bottom:12px}
+
+@page{
+  size:A4 landscape;
+  margin:8mm;
+}
+@media print{
+  header,nav,#message,.loading,
+  #homePage,#managePage,#transferPage,#setupPage,#addPage,#historyPage,
+  .print-controls{
+    display:none!important;
+  }
+
+  body,main{
+    background:#fff!important;
+    margin:0!important;
+    padding:0!important;
+    max-width:none!important;
+  }
+
+  #printPage{
+    display:block!important;
+    margin:0!important;
+    padding:0!important;
+  }
+
+  #printPage .card{
+    border:none!important;
+    box-shadow:none!important;
+    margin:0!important;
+    padding:0!important;
+  }
+
+  .print-sheet{
+    display:block!important;
+    width:100%!important;
+  }
+
+  .print-title{
+    text-align:center;
+    font-size:20pt;
+    font-weight:800;
+    margin:0 0 4mm;
+  }
+
+  .print-meta{
+    display:grid;
+    grid-template-columns:1.1fr .8fr 2fr;
+    border:1px solid #000;
+    margin-bottom:4mm;
+  }
+
+  .print-meta div{
+    padding:3mm;
+    min-height:11mm;
+    border-right:1px solid #000;
+    font-size:11pt;
+  }
+
+  .print-meta div:last-child{
+    border-right:none;
+  }
+
+  .print-table{
+    width:100%;
+    border-collapse:collapse;
+    table-layout:fixed;
+  }
+
+  .print-table th,
+  .print-table td{
+    border:1px solid #000;
+    padding:2.8mm 2mm;
+    height:10.5mm;
+    font-size:10.5pt;
+    vertical-align:middle;
+  }
+
+  .print-table th{
+    background:#e8edf2!important;
+    color:#000!important;
+    text-align:center;
+  }
+
+  .print-table th:nth-child(1),
+  .print-table td:nth-child(1){width:34%}
+
+  .print-table th:nth-child(2),
+  .print-table td:nth-child(2){width:14%;text-align:center}
+
+  .print-table th:nth-child(3),
+  .print-table td:nth-child(3){width:52%}
+}
+
 </style>
 </head>
 <body>
@@ -46,6 +142,7 @@ table{width:100%;border-collapse:collapse;background:#fff} th,td{padding:11px;bo
 <button class="nav" data-page="transfer" onclick="showPage('transfer')">資材移動</button>
 <button class="nav" data-page="setup" onclick="showPage('setup')">初期数入力</button>
 <button class="nav" data-page="add" onclick="showPage('add')">資材マスタ</button>
+<button class="nav" data-page="print" onclick="showPage('print')">記入表印刷</button>
 <button class="nav" data-page="history" onclick="showPage('history')">履歴</button>
 </nav>
 <main>
@@ -117,6 +214,57 @@ onblur="if(this.value==='')this.value='0';"></div>
 </table>
 </div>
 </div>
+</section>
+
+
+<section id="printPage" class="page">
+  <div class="card print-controls">
+    <h2>記入表印刷</h2>
+    <p>号車と担当者を選んで、A4横の手書き用記入表を印刷できます。</p>
+
+    <div class="grid g3">
+      <div>
+        <label>点検日</label>
+        <input type="date" id="printDateInput">
+      </div>
+      <div>
+        <label>号車</label>
+        <select id="printTruckInput"></select>
+      </div>
+      <div>
+        <label>担当者</label>
+        <input id="printStaffInput" placeholder="担当者名">
+      </div>
+    </div>
+
+    <div class="toolbar" style="margin-top:14px">
+      <button class="primary" onclick="printBlankSheet()">空欄で印刷</button>
+      <button class="secondary" onclick="printCurrentSheet()">現在数量入りで印刷</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="print-sheet" id="printSheet">
+      <div class="print-title">資材管理記入表</div>
+
+      <div class="print-meta">
+        <div><strong>点検日：</strong><span id="printDateOut"></span></div>
+        <div><strong>号車：</strong><span id="printTruckOut"></span></div>
+        <div><strong>担当者：</strong><span id="printStaffOut"></span></div>
+      </div>
+
+      <table class="print-table">
+        <thead>
+          <tr>
+            <th>資材名</th>
+            <th>数量</th>
+            <th>備考</th>
+          </tr>
+        </thead>
+        <tbody id="printTableBody"></tbody>
+      </table>
+    </div>
+  </div>
 </section>
 
 <section id="historyPage" class="page">
@@ -327,6 +475,49 @@ async function deleteMaterial(material){
  }catch(e){msg(e.message,"error");}
 }
 
+
+function preparePrintPage(){
+  const truckSelect=document.getElementById("printTruckInput");
+  if(truckSelect){
+    const current=truckSelect.value;
+    truckSelect.innerHTML=trucks.map(t=>`<option>${t}</option>`).join("");
+    if(current && trucks.includes(current))truckSelect.value=current;
+  }
+
+  const dateInput=document.getElementById("printDateInput");
+  if(dateInput && !dateInput.value)dateInput.value=today();
+}
+
+function buildPrintSheet(includeCurrent){
+  const truck=document.getElementById("printTruckInput").value||trucks[0];
+  const staff=document.getElementById("printStaffInput").value.trim();
+  const date=document.getElementById("printDateInput").value||today();
+  const items=listFor(truck);
+
+  document.getElementById("printDateOut").textContent=date.replaceAll("-","/");
+  document.getElementById("printTruckOut").textContent=truck;
+  document.getElementById("printStaffOut").textContent=staff;
+
+  document.getElementById("printTableBody").innerHTML=items.map(item=>`
+    <tr>
+      <td>${esc(item.material)}</td>
+      <td>${includeCurrent ? item.quantity : ""}</td>
+      <td>${includeCurrent ? esc(item.note||"") : ""}</td>
+    </tr>
+  `).join("");
+}
+
+function printBlankSheet(){
+  buildPrintSheet(false);
+  window.print();
+}
+
+function printCurrentSheet(){
+  buildPrintSheet(true);
+  window.print();
+}
+
+
 function renderHistory(){
  const tf=historyTruck.value,mf=historyMaterial.value;
  const h=historyData.filter(x=>(!tf||String(x.truck).includes(tf))&&(!mf||x.material===mf));
@@ -385,6 +576,8 @@ async function clearAllHistory(){
 }
 
 document.getElementById("date").value=today();
+document.getElementById("printDateInput").value=today();
+preparePrintPage();
 fillSelects();
 document.getElementById("truck").addEventListener("change",renderManage);
 refresh();
