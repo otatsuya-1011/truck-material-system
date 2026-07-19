@@ -45,6 +45,7 @@ table{width:100%;border-collapse:collapse;background:#fff} th,td{padding:11px;bo
 <button class="nav" data-page="manage" onclick="showPage('manage')">資材管理</button>
 <button class="nav" data-page="transfer" onclick="showPage('transfer')">資材移動</button>
 <button class="nav" data-page="setup" onclick="showPage('setup')">初期数入力</button>
+<button class="nav" data-page="add" onclick="showPage('add')">資材追加</button>
 <button class="nav" data-page="history" onclick="showPage('history')">履歴</button>
 </nav>
 <main>
@@ -90,6 +91,24 @@ table{width:100%;border-collapse:collapse;background:#fff} th,td{padding:11px;bo
 </div>
 </section>
 
+
+<section id="addPage" class="page">
+<div class="card">
+<h2>資材追加</h2>
+<p>追加した資材は、29・31・32・33号車すべてに自動追加されます。</p>
+<div class="grid g2">
+<div><label>新しい資材名</label><input id="newMaterial" placeholder="例：養生シート"></div>
+<div><label>各号車の初期数</label><input type="number" id="newInitialQty" min="0" value="0"
+onfocus="if(this.value==='0')this.value='';else this.select();"
+onblur="if(this.value==='')this.value='0';"></div>
+<div><label>担当者</label><input id="newMaterialStaff" placeholder="担当者名"></div>
+<div><label>備考</label><input id="newMaterialNote" placeholder="任意"></div>
+</div>
+<br>
+<button class="primary" onclick="addMaterial()">資材を追加する</button>
+</div>
+</section>
+
 <section id="historyPage" class="page">
 <div class="card"><div class="toolbar no-print">
 <div><label>号車</label><select id="historyTruck"><option value="">すべて</option></select></div>
@@ -104,7 +123,7 @@ table{width:100%;border-collapse:collapse;background:#fff} th,td{padding:11px;bo
 <script>
 const API_URL='https://script.google.com/macros/s/AKfycbyct0KZSyQwmGQL9HnDBbxvzpdGRcSCznVAuUxtz-JgXd8cK8EtsXafG30mlCsSUQWg/exec';
 const trucks=["29号車","31号車","32号車","33号車"];
-const materials=["玄関マット","ピアノカバー","小布団","パット","家具ロープ","吊り帯","担ぎ帯","まくら","ジャバラ","ピアノ台車","ラッシング","背負子"];
+let materials=[];
 let cloudData={}, historyData=[], setupTruck="29号車";
 
 function today(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
@@ -133,7 +152,7 @@ async function apiPost(payload){
 async function refresh(){
  try{
   const j=await apiGet("?action=getAll");
-  cloudData=j.data; historyData=j.history||[];
+  materials=j.materials||[]; cloudData=j.data; historyData=j.history||[];
   renderHome();renderManage();renderSetup();renderHistory();
  }catch(e){msg("通信エラー："+e.message,"error")}
 }
@@ -189,6 +208,27 @@ async function saveSetup(){
  const items=materials.map(m=>({material:m,quantity:Number(document.getElementById("q_"+m).value)||0,note:document.getElementById("n_"+m).value||""}));
  try{await apiPost({action:"saveTruck",truck:setupTruck,items,staff:"初期設定"});msg(setupTruck+"を保存しました");await refresh()}catch(e){msg(e.message,"error")}
 }
+
+async function addMaterial(){
+ const material=document.getElementById("newMaterial").value.trim();
+ if(!material){msg("資材名を入力してください","error");return;}
+ if(!confirm(`「${material}」を全号車へ追加しますか？`))return;
+ try{
+  await apiPost({
+   action:"addMaterial",
+   material:material,
+   initialQuantity:Number(document.getElementById("newInitialQty").value)||0,
+   note:document.getElementById("newMaterialNote").value||"",
+   staff:document.getElementById("newMaterialStaff").value||"未入力"
+  });
+  document.getElementById("newMaterial").value="";
+  document.getElementById("newInitialQty").value="0";
+  document.getElementById("newMaterialNote").value="";
+  msg("資材を追加しました");
+  await refresh();
+ }catch(e){msg(e.message,"error");}
+}
+
 function renderHistory(){
  const tf=historyTruck.value,mf=historyMaterial.value;
  const h=historyData.filter(x=>(!tf||String(x.truck).includes(tf))&&(!mf||x.material===mf));
