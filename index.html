@@ -1,612 +1,201 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>資材管理システム Pro</title>
 <style>
-:root{
-  --navy:#102a43; --navy2:#1f4e78; --blue:#2f80ed; --cyan:#56ccf2;
-  --bg:#eef3f8; --card:#ffffff; --line:#d9e3ec; --text:#243447;
-  --muted:#6b7c93; --green:#1f9d55; --red:#d64545; --amber:#c87914;
-  --shadow:0 12px 32px rgba(16,42,67,.10);
-}
-*{box-sizing:border-box}
-body{
-  margin:0;font-family:"Segoe UI","Yu Gothic UI","Meiryo",sans-serif;
-  background:linear-gradient(180deg,#f8fbfd 0%,var(--bg) 100%);
-  color:var(--text);
-}
-button,input,select,textarea{font:inherit}
-header{
-  background:linear-gradient(135deg,var(--navy),var(--navy2) 58%,var(--blue));
-  color:white;padding:22px 20px 28px;box-shadow:0 8px 28px rgba(16,42,67,.22)
-}
-.header-inner{max-width:1200px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:16px}
-.brand{display:flex;align-items:center;gap:14px}
-.logo{width:52px;height:52px;border-radius:15px;background:white;display:grid;place-items:center;color:var(--navy);font-size:26px;box-shadow:0 8px 20px rgba(0,0,0,.15)}
-header h1{margin:0;font-size:27px}
-header p{margin:4px 0 0;opacity:.84;font-size:13px}
-.badge{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);padding:10px 14px;border-radius:999px;font-weight:700}
-nav{max-width:1200px;margin:-16px auto 0;padding:0 16px;position:relative;z-index:3}
-.navbar{display:flex;gap:8px;flex-wrap:wrap;background:white;padding:8px;border-radius:15px;box-shadow:var(--shadow)}
-.navbtn{border:0;border-radius:10px;padding:11px 16px;background:transparent;color:var(--muted);font-weight:800;cursor:pointer}
-.navbtn.active{background:linear-gradient(135deg,var(--navy2),var(--blue));color:white}
-main{max-width:1200px;margin:22px auto;padding:0 16px 40px}
-.page{display:none}.page.active{display:block}
-.card{background:rgba(255,255,255,.97);border:1px solid rgba(217,227,236,.95);border-radius:18px;padding:18px;box-shadow:var(--shadow)}
-.grid{display:grid;gap:16px}.grid-4{grid-template-columns:repeat(4,1fr)}.grid-3{grid-template-columns:repeat(3,1fr)}.grid-2{grid-template-columns:repeat(2,1fr)}
-.truck-card{cursor:pointer;position:relative;overflow:hidden}
-.truck-card:after{content:"";position:absolute;width:100px;height:100px;border-radius:50%;right:-30px;top:-30px;background:rgba(47,128,237,.08)}
-.truck-card h3{margin:0;color:var(--navy)}
-.truck-card .total{font-size:34px;font-weight:900;color:var(--navy2);margin:8px 0 2px}
-.alert{margin-top:8px;font-size:13px;font-weight:800}
-.alert.ok{color:var(--green)}.alert.warn{color:var(--red)}
-.section-title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}
-.section-title h2{margin:0;color:var(--navy);font-size:20px}
-.field label{display:block;font-size:12px;font-weight:800;color:var(--navy);margin-bottom:6px}
-input,select,textarea{width:100%;border:1px solid #cad7e2;border-radius:10px;padding:11px 12px;background:white;outline:none}
-input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(47,128,237,.12)}
-.btn{border:0;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer}
-.btn-primary{background:linear-gradient(135deg,var(--navy2),var(--blue));color:white}
-.btn-secondary{background:#e9f0f6;color:var(--navy)}
-.btn-success{background:#dff5e7;color:var(--green)}
-.btn-danger{background:#fde6e6;color:var(--red)}
-.btn-warning{background:#fff1d8;color:var(--amber)}
-.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px}
-table{width:100%;border-collapse:collapse;background:white}
-th,td{padding:12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
-th{background:linear-gradient(135deg,var(--navy),var(--navy2));color:white;font-size:13px}
-tbody tr:nth-child(even){background:#f8fbfd}
-.qty{font-size:21px;font-weight:900;text-align:center;color:var(--navy)}
-.status{font-size:12px;font-weight:900;padding:5px 9px;border-radius:999px;display:inline-block}
-.status.ok{background:#e4f7eb;color:var(--green)}
-.status.low{background:#ffe6e6;color:var(--red)}
-.actions{display:flex;gap:8px;flex-wrap:wrap}
-.metric{font-size:12px;color:var(--muted);font-weight:800}.metric strong{display:block;font-size:28px;color:var(--navy);margin-top:4px}
-.note{background:#fff7e8;border:1px solid #f0d7a7;color:#7a4c00;padding:12px;border-radius:10px;font-weight:700;margin-bottom:14px}
-.history-list{max-height:430px;overflow:auto;border:1px solid var(--line);border-radius:14px}
-.history-item{padding:13px 14px;border-bottom:1px solid var(--line);background:white}
-.history-item:last-child{border-bottom:none}.history-item small{color:var(--muted)}
-.empty{text-align:center;color:var(--muted);padding:28px}
-.toolbar{display:flex;gap:10px;flex-wrap:wrap}
-.modal{position:fixed;inset:0;background:rgba(10,25,40,.55);display:none;align-items:center;justify-content:center;padding:16px;z-index:30;backdrop-filter:blur(4px)}
-.modal.show{display:flex}.modal-box{background:white;width:min(520px,100%);border-radius:18px;padding:22px;box-shadow:0 24px 60px rgba(0,0,0,.24)}
-.modal-box h3{margin-top:0;color:var(--navy)}
-@media(max-width:900px){.grid-4{grid-template-columns:repeat(2,1fr)}.grid-3,.grid-2{grid-template-columns:1fr}}
-@media(max-width:640px){
-  .header-inner{align-items:flex-start}.badge{display:none}.grid-4{grid-template-columns:1fr}
-  .navbar{display:grid;grid-template-columns:1fr 1fr}.navbtn{width:100%}
-  table,thead,tbody,tr,th,td{display:block}.table-wrap{border:0;overflow:visible}thead{display:none}
-  tr{border:1px solid var(--line);border-radius:14px;margin-bottom:12px;padding:10px;background:white!important}
-  td{border:0;padding:7px 4px}td:before{content:attr(data-label);display:block;font-size:11px;color:var(--muted);font-weight:700;margin-bottom:3px}
-}
-@page{
-  size:A4 landscape;
-  margin:5mm;
-}
+:root{--navy:#102a43;--navy2:#1f4e78;--blue:#2f80ed;--bg:#eef3f8;--line:#d9e3ec;--green:#1f9d55;--red:#d64545;--muted:#6b7c93}
+*{box-sizing:border-box} body{margin:0;font-family:Segoe UI,"Yu Gothic UI",Meiryo,sans-serif;background:var(--bg);color:#243447}
+header{background:linear-gradient(135deg,var(--navy),var(--navy2),var(--blue));color:#fff;padding:20px}
+.header{max-width:1150px;margin:auto;display:flex;align-items:center;gap:14px}
+.logo{width:50px;height:50px;border-radius:14px;background:#fff;display:grid;place-items:center;font-size:25px}
+h1{margin:0;font-size:25px} header p{margin:4px 0 0;opacity:.85;font-size:13px}
+nav{max-width:1150px;margin:14px auto;padding:0 14px;display:flex;gap:8px;flex-wrap:wrap}
+button{font:inherit;cursor:pointer;border:0;border-radius:9px;padding:10px 14px;font-weight:700}
+.nav{background:#dfe8f1;color:var(--navy)} .nav.active,.primary{background:var(--navy2);color:#fff}
+.secondary{background:#e7eef4;color:var(--navy)} .plus{background:#dff5e7;color:var(--green)} .minus{background:#fde6e6;color:var(--red)}
+main{max-width:1150px;margin:auto;padding:0 14px 35px} .page{display:none} .page.active{display:block}
+.card{background:#fff;border:1px solid var(--line);border-radius:15px;padding:17px;margin-bottom:15px;box-shadow:0 8px 24px rgba(16,42,67,.08)}
+.grid{display:grid;gap:14px} .g4{grid-template-columns:repeat(4,1fr)} .g3{grid-template-columns:repeat(3,1fr)} .g2{grid-template-columns:repeat(2,1fr)}
+.truck-card{cursor:pointer} .truck-card h3{margin:0;color:var(--navy)} .total{font-size:32px;font-weight:900;color:var(--navy2);margin-top:8px}
+label{display:block;font-size:12px;font-weight:800;margin-bottom:6px;color:var(--navy)} input,select,textarea{width:100%;padding:10px;border:1px solid #cbd7e2;border-radius:9px;font:inherit}
+table{width:100%;border-collapse:collapse;background:#fff} th,td{padding:11px;border-bottom:1px solid var(--line);text-align:left} th{background:var(--navy2);color:#fff}
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px} .qty{font-weight:900;font-size:20px;text-align:center}
+.actions{display:flex;gap:7px;flex-wrap:wrap} .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:end}
+.status{padding:4px 8px;border-radius:999px;font-size:12px;font-weight:800} .ok{background:#e2f5e9;color:var(--green)} .low{background:#fde6e6;color:var(--red)}
+.msg{padding:12px;border-radius:10px;margin-bottom:14px;display:none} .msg.show{display:block} .msg.info{background:#e8f2ff;color:#174ea6} .msg.error{background:#fde6e6;color:#a61b1b}
+.loading{position:fixed;inset:0;background:rgba(255,255,255,.78);display:none;align-items:center;justify-content:center;z-index:99;font-weight:800;color:var(--navy)} .loading.show{display:flex}
+.history-item{padding:12px;border-bottom:1px solid var(--line)} small{color:var(--muted)}
+@media(max-width:800px){.g4{grid-template-columns:repeat(2,1fr)}.g3,.g2{grid-template-columns:1fr}}
+@media(max-width:560px){.g4{grid-template-columns:1fr}nav{display:grid;grid-template-columns:1fr 1fr}}
+@page{size:A4 landscape;margin:5mm}
 @media print{
-  *{
-    box-sizing:border-box!important;
-  }
-
-  html,body{
-    width:287mm!important;
-    height:200mm!important;
-    min-height:0!important;
-    margin:0!important;
-    padding:0!important;
-    overflow:hidden!important;
-    background:#fff!important;
-    color:#000!important;
-  }
-
-  header,nav,
-  #homePage,#transferPage,#setupPage,#historyPage,#settingsPage,
-  #managePage > .grid,
-  #managePage .no-print,
-  .actions{
-    display:none!important;
-  }
-
-  main{
-    display:block!important;
-    width:100%!important;
-    max-width:none!important;
-    height:auto!important;
-    min-height:0!important;
-    margin:0!important;
-    padding:0!important;
-  }
-
-  #managePage{
-    display:block!important;
-    width:100%!important;
-    height:auto!important;
-    min-height:0!important;
-    margin:0!important;
-    padding:0!important;
-    overflow:hidden!important;
-    page-break-after:avoid!important;
-    break-after:avoid-page!important;
-  }
-
-  #managePage .card{
-    display:block!important;
-    width:100%!important;
-    height:auto!important;
-    min-height:0!important;
-    margin:0!important;
-    padding:0!important;
-    border:none!important;
-    border-radius:0!important;
-    box-shadow:none!important;
-    background:#fff!important;
-  }
-
-  .print-meta{
-    display:grid!important;
-    grid-template-columns:1.15fr .75fr 2fr!important;
-    width:100%!important;
-    height:10mm!important;
-    margin:0 0 2mm 0!important;
-    border:0.3mm solid #000!important;
-    font-size:9pt!important;
-  }
-
-  .print-meta > div{
-    display:flex!important;
-    align-items:center!important;
-    min-height:0!important;
-    height:9.4mm!important;
-    padding:1.5mm 2mm!important;
-    border-right:0.3mm solid #000!important;
-  }
-
-  .print-meta > div:last-child{
-    border-right:none!important;
-  }
-
-  .print-label{
-    font-weight:700!important;
-    margin-right:2mm!important;
-  }
-
-  #managePage .section-title{
-    display:block!important;
-    width:100%!important;
-    height:9mm!important;
-    margin:0 0 2mm 0!important;
-    padding:0!important;
-    text-align:center!important;
-  }
-
-  #managePage .section-title h2{
-    margin:0!important;
-    padding:0!important;
-    font-size:15pt!important;
-    line-height:9mm!important;
-    color:#000!important;
-  }
-
-  #managePage .table-wrap{
-    display:block!important;
-    width:100%!important;
-    height:auto!important;
-    margin:0!important;
-    padding:0!important;
-    overflow:hidden!important;
-    border:none!important;
-    border-radius:0!important;
-  }
-
-  #managePage table{
-    display:table!important;
-    width:100%!important;
-    height:auto!important;
-    table-layout:fixed!important;
-    border-collapse:collapse!important;
-    border-spacing:0!important;
-    margin:0!important;
-    padding:0!important;
-    font-size:8.5pt!important;
-  }
-
-  #managePage thead{
-    display:table-header-group!important;
-  }
-
-  #managePage tbody{
-    display:table-row-group!important;
-  }
-
-  #managePage tr{
-    display:table-row!important;
-    height:10.5mm!important;
-    min-height:0!important;
-    page-break-inside:avoid!important;
-    break-inside:avoid!important;
-  }
-
-  #managePage th,
-  #managePage td{
-    display:table-cell!important;
-    height:10.5mm!important;
-    min-height:0!important;
-    max-height:10.5mm!important;
-    padding:1.2mm 1.8mm!important;
-    border:0.25mm solid #000!important;
-    line-height:1.15!important;
-    vertical-align:middle!important;
-    background:#fff!important;
-    color:#000!important;
-    overflow:hidden!important;
-  }
-
-  #managePage th{
-    height:9mm!important;
-    max-height:9mm!important;
-    font-weight:700!important;
-    text-align:center!important;
-  }
-
-  #managePage th:nth-child(1),
-  #managePage td:nth-child(1){
-    width:25%!important;
-  }
-
-  #managePage th:nth-child(2),
-  #managePage td:nth-child(2){
-    width:10%!important;
-    text-align:center!important;
-  }
-
-  #managePage th:nth-child(3),
-  #managePage td:nth-child(3){
-    width:12%!important;
-    text-align:center!important;
-  }
-
-  #managePage th:nth-child(4),
-  #managePage td:nth-child(4){
-    display:none!important;
-  }
-
-  #managePage th:nth-child(5),
-  #managePage td:nth-child(5){
-    width:53%!important;
-  }
-
-  #managePage td::before{
-    display:none!important;
-    content:none!important;
-  }
-
-  #managePage input{
-    display:block!important;
-    width:100%!important;
-    height:6mm!important;
-    min-height:0!important;
-    margin:0!important;
-    padding:0!important;
-    border:none!important;
-    border-radius:0!important;
-    box-shadow:none!important;
-    background:transparent!important;
-    color:#000!important;
-    font-size:8.5pt!important;
-    line-height:6mm!important;
-  }
-
-  #managePage .status{
-    display:inline!important;
-    padding:0!important;
-    border-radius:0!important;
-    background:transparent!important;
-    color:#000!important;
-    font-size:8.5pt!important;
-  }
-
-  #managePage .qty{
-    font-size:10pt!important;
-    color:#000!important;
-  }
+ header,nav,.no-print,#homePage,#transferPage,#setupPage,#historyPage{display:none!important}
+ body,main{background:#fff;margin:0;padding:0} #managePage{display:block!important}
+ .card{box-shadow:none;border:0;padding:0} .table-wrap{border:1px solid #000}
+ th,td{padding:4px;border:1px solid #000;font-size:10pt} .actions{display:none}
 }
-
 </style>
 </head>
 <body>
-<header>
-  <div class="header-inner">
-    <div class="brand">
-      <div class="logo">🚚</div>
-      <div><h1>資材管理システム Pro</h1><p>号車別の在庫・移動・履歴を一元管理</p></div>
-    </div>
-    <div class="badge">奈良営業所</div>
-  </div>
-</header>
-
+<header><div class="header"><div class="logo">🚚</div><div><h1>資材管理システム Pro</h1><p>Googleスプレッドシート完全連携版</p></div></div></header>
 <nav>
-  <div class="navbar">
-    <button class="navbtn active" data-page="home" onclick="showPage('home')">ホーム</button>
-    <button class="navbtn" data-page="manage" onclick="showPage('manage')">資材管理</button>
-    <button class="navbtn" data-page="transfer" onclick="showPage('transfer')">資材移動</button>
-    <button class="navbtn" data-page="setup" onclick="showPage('setup')">初期数入力</button>
-    <button class="navbtn" data-page="history" onclick="showPage('history')">履歴</button>
-    <button class="navbtn" data-page="settings" onclick="showPage('settings')">設定</button>
-  </div>
+<button class="nav active" data-page="home" onclick="showPage('home')">ホーム</button>
+<button class="nav" data-page="manage" onclick="showPage('manage')">資材管理</button>
+<button class="nav" data-page="transfer" onclick="showPage('transfer')">資材移動</button>
+<button class="nav" data-page="setup" onclick="showPage('setup')">初期数入力</button>
+<button class="nav" data-page="history" onclick="showPage('history')">履歴</button>
 </nav>
-
 <main>
+<div id="message" class="msg"></div>
+
 <section id="homePage" class="page active">
-  <div class="section-title"><h2>号車別ダッシュボード</h2><button class="btn btn-secondary no-print" onclick="window.print()">印刷</button></div>
-  <div id="truckCards" class="grid grid-4"></div>
-  <div class="grid grid-3" style="margin-top:16px">
-    <div class="card metric">全号車の資材合計<strong id="allTotal">0</strong></div>
-    <div class="card metric">不足項目数<strong id="lowTotal">0</strong></div>
-    <div class="card metric">本日の更新件数<strong id="todayUpdates">0</strong></div>
-  </div>
+<div class="card"><h2>号車別ダッシュボード</h2><div id="truckCards" class="grid g4"></div></div>
 </section>
 
 <section id="managePage" class="page">
-  <div class="print-meta" style="display:none">
-    <div><span class="print-label">点検日</span><span id="printDate"></span></div>
-    <div><span class="print-label">号車</span><span id="printTruck"></span></div>
-    <div><span class="print-label">担当者</span><span id="printStaff"></span></div>
-  </div>
-  <div class="grid grid-3" style="margin-bottom:16px">
-    <div class="card field"><label>日付</label><input type="date" id="manageDate"></div>
-    <div class="card field"><label>号車</label><select id="manageTruck"></select></div>
-    <div class="card field"><label>担当者</label><input id="manageStaff" placeholder="担当者名"></div>
-  </div>
-  <div class="card">
-    <div class="section-title"><h2 id="manageTitle">資材一覧</h2><div class="toolbar no-print"><button class="btn btn-secondary" onclick="printManagePage()">印刷</button><button class="btn btn-danger" onclick="resetTruck()">号車を初期化</button></div></div>
-    <div class="table-wrap"><table><thead><tr><th>資材名</th><th>数量</th><th>状態</th><th>増減</th><th>備考</th></tr></thead><tbody id="manageBody"></tbody></table></div>
-  </div>
+<div class="card no-print">
+<div class="grid g3">
+<div><label>日付</label><input type="date" id="date"></div>
+<div><label>号車</label><select id="truck"></select></div>
+<div><label>担当者</label><input id="staff" placeholder="担当者名"></div>
+</div>
+</div>
+<div class="card">
+<div class="toolbar" style="justify-content:space-between"><h2 id="manageTitle">資材一覧</h2><button class="secondary no-print" onclick="window.print()">印刷</button></div>
+<div class="table-wrap"><table><thead><tr><th>資材名</th><th>数量</th><th>増減</th><th>備考</th></tr></thead><tbody id="manageBody"></tbody></table></div>
+</div>
 </section>
 
 <section id="transferPage" class="page">
-  <div class="card">
-    <div class="section-title"><h2>資材移動</h2></div>
-    <div class="note">移動元から数量を減らし、移動先へ同じ数量を自動で加算します。</div>
-    <div class="grid grid-2">
-      <div class="field"><label>移動元</label><select id="fromTruck"></select></div>
-      <div class="field"><label>移動先</label><select id="toTruck"></select></div>
-      <div class="field"><label>資材</label><select id="transferMaterial"></select></div>
-      <div class="field"><label>数量</label><input type="number" id="transferQty" min="1" value="1"></div>
-      <div class="field"><label>担当者</label><input id="transferStaff" placeholder="担当者名"></div>
-      <div class="field"><label>備考</label><input id="transferNote" placeholder="移動理由など"></div>
-    </div>
-    <div style="margin-top:16px"><button class="btn btn-primary" onclick="executeTransfer()">資材を移動する</button></div>
-  </div>
+<div class="card"><h2>資材移動</h2>
+<div class="grid g2">
+<div><label>移動元</label><select id="fromTruck"></select></div>
+<div><label>移動先</label><select id="toTruck"></select></div>
+<div><label>資材</label><select id="transferMaterial"></select></div>
+<div><label>数量</label><input type="number" min="1" value="1" id="transferQty"></div>
+<div><label>担当者</label><input id="transferStaff"></div>
+<div><label>備考</label><input id="transferNote"></div>
+</div><br><button class="primary" onclick="transfer()">移動する</button>
+</div>
 </section>
 
 <section id="setupPage" class="page">
-  <div class="card">
-    <div class="section-title"><h2>初期数入力</h2></div>
-    <div class="note">号車を選び、その号車に現在積んでいる資材数を入力してください。</div>
-
-    <div id="setupTruckButtons" class="toolbar" style="margin-bottom:16px"></div>
-
-    <div class="section-title">
-      <h2 id="setupTitle">29号車 初期数入力</h2>
-    </div>
-
-    <div id="setupArea"></div>
-
-    <div class="toolbar" style="justify-content:flex-end;margin-top:16px">
-      <button class="btn btn-secondary" onclick="loadSetup()">現在数を読み込む</button>
-      <button class="btn btn-warning" onclick="clearSetup()">入力欄をクリア</button>
-      <button class="btn btn-primary" onclick="saveSetup()">この号車を保存</button>
-    </div>
-  </div>
+<div class="card"><h2>初期数入力</h2>
+<div id="setupButtons" class="toolbar no-print"></div><br>
+<h3 id="setupTitle"></h3>
+<div class="table-wrap"><table><thead><tr><th>資材名</th><th>初期数</th><th>備考</th></tr></thead><tbody id="setupBody"></tbody></table></div>
+<br><button class="primary" onclick="saveSetup()">この号車を保存</button>
+</div>
 </section>
 
 <section id="historyPage" class="page">
-  <div class="card">
-    <div class="section-title"><h2>更新履歴</h2><button class="btn btn-danger" onclick="clearHistory()">履歴を削除</button></div>
-    <div class="grid grid-3" style="margin-bottom:14px">
-      <div class="field"><label>号車</label><select id="historyTruck"><option value="">すべて</option></select></div>
-      <div class="field"><label>資材</label><select id="historyMaterial"><option value="">すべて</option></select></div>
-      <div class="field"><label>日付</label><input type="date" id="historyDate"></div>
-    </div>
-    <div id="historyList" class="history-list"></div>
-  </div>
-</section>
-
-<section id="settingsPage" class="page">
-  <div class="card">
-    <div class="section-title"><h2>設定</h2></div>
-    <div class="note">不足判定の基準数を資材ごとに設定できます。</div>
-    <div class="table-wrap"><table><thead><tr><th>資材名</th><th>不足判定基準</th></tr></thead><tbody id="thresholdBody"></tbody></table></div>
-    <div class="toolbar" style="margin-top:16px">
-      <button class="btn btn-primary" onclick="saveThresholds()">基準を保存</button>
-      <button class="btn btn-secondary" onclick="exportData()">データを書き出す</button>
-      <label class="btn btn-secondary" style="display:inline-block">データを読み込む<input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)"></label>
-    </div>
-  </div>
+<div class="card"><div class="toolbar no-print">
+<div><label>号車</label><select id="historyTruck"><option value="">すべて</option></select></div>
+<div><label>資材</label><select id="historyMaterial"><option value="">すべて</option></select></div>
+<button class="secondary" onclick="renderHistory()">絞り込み</button>
+</div><h2>更新履歴</h2><div id="historyList"></div></div>
 </section>
 </main>
 
-<div id="changeModal" class="modal">
-  <div class="modal-box">
-    <h3 id="changeTitle"></h3>
-    <div class="field"><label>変更数</label><input type="number" id="changeQty" min="1" value="1"></div>
-    <div class="field" style="margin-top:12px"><label>理由・備考</label><textarea id="changeNote" rows="3"></textarea></div>
-    <div class="toolbar" style="margin-top:16px">
-      <button class="btn btn-primary" onclick="confirmChange()">登録</button>
-      <button class="btn btn-secondary" onclick="closeModal()">キャンセル</button>
-    </div>
-  </div>
-</div>
+<div id="loading" class="loading">スプレッドシートと通信中…</div>
 
 <script>
+const API_URL='https://script.google.com/macros/s/AKfycbyct0KZSyQwmGQL9HnDBbxvzpdGRcSCznVAuUxtz-JgXd8cK8EtsXafG30mlCsSUQWg/exec';
 const trucks=["29号車","31号車","32号車","33号車"];
 const materials=["玄関マット","ピアノカバー","小布団","パット","家具ロープ","吊り帯","担ぎ帯","まくら","ジャバラ","ピアノ台車","ラッシング","背負子"];
-let pending=null;
-let setupTruck="29号車";
+let cloudData={}, historyData=[], setupTruck="29号車";
 
 function today(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
-function blankData(){const d={};trucks.forEach(t=>{d[t]={};materials.forEach(m=>d[t][m]={qty:0,note:""})});return d}
-function getData(){let d;try{d=JSON.parse(localStorage.getItem("proData"))||blankData()}catch{d=blankData()}trucks.forEach(t=>{if(!d[t])d[t]={};materials.forEach(m=>{if(!d[t][m])d[t][m]={qty:0,note:""}})});return d}
-function saveData(d){localStorage.setItem("proData",JSON.stringify(d))}
-function getHistory(){try{return JSON.parse(localStorage.getItem("proHistory"))||[]}catch{return[]}}
-function saveHistory(h){localStorage.setItem("proHistory",JSON.stringify(h.slice(0,500)))}
-function getThresholds(){let t;try{t=JSON.parse(localStorage.getItem("proThresholds"))||{}}catch{t={}}materials.forEach(m=>{if(t[m]===undefined)t[m]=1});return t}
-function stamp(){return new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"})}
 function esc(s){return String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;")}
+function loading(v){document.getElementById("loading").classList.toggle("show",v)}
+function msg(text,type="info"){const e=document.getElementById("message");e.textContent=text;e.className=`msg show ${type}`;setTimeout(()=>e.className="msg",4000)}
 
-function fillSelects(){
-  ["manageTruck","fromTruck","toTruck","historyTruck"].forEach(id=>{
-    const el=document.getElementById(id); if(!el)return;
-    const keep=el.innerHTML.includes("すべて")?'<option value="">すべて</option>':"";
-    el.innerHTML=keep+trucks.map(t=>`<option>${t}</option>`).join("");
-  });
-  document.getElementById("transferMaterial").innerHTML=materials.map(m=>`<option>${m}</option>`).join("");
-  document.getElementById("historyMaterial").innerHTML='<option value="">すべて</option>'+materials.map(m=>`<option>${m}</option>`).join("");
+async function apiGet(params=""){
+ loading(true);
+ try{
+  const r=await fetch(API_URL+params,{cache:"no-store"});
+  const j=await r.json();
+  if(!j.success)throw new Error(j.message||"取得失敗");
+  return j;
+ }finally{loading(false)}
+}
+async function apiPost(payload){
+ loading(true);
+ try{
+  const r=await fetch(API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(payload)});
+  const j=await r.json();
+  if(!j.success)throw new Error(j.message||"保存失敗");
+  return j;
+ }finally{loading(false)}
+}
+async function refresh(){
+ try{
+  const j=await apiGet("?action=getAll");
+  cloudData=j.data; historyData=j.history||[];
+  renderHome();renderManage();renderSetup();renderHistory();
+ }catch(e){msg("通信エラー："+e.message,"error")}
 }
 function showPage(p){
-  document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
-  document.getElementById(p+"Page").classList.add("active");
-  document.querySelectorAll(".navbtn").forEach(x=>x.classList.toggle("active",x.dataset.page===p));
-  if(p==="home")renderHome(); if(p==="manage")renderManage(); if(p==="history")renderHistory(); if(p==="setup")loadSetup(); if(p==="settings")renderThresholds();
+ document.querySelectorAll(".page").forEach(e=>e.classList.remove("active"));
+ document.getElementById(p+"Page").classList.add("active");
+ document.querySelectorAll(".nav").forEach(e=>e.classList.toggle("active",e.dataset.page===p));
+ if(p==="manage")renderManage(); if(p==="setup")renderSetup(); if(p==="history")renderHistory();
 }
+function fillSelects(){
+ ["truck","fromTruck","toTruck"].forEach(id=>document.getElementById(id).innerHTML=trucks.map(t=>`<option>${t}</option>`).join(""));
+ document.getElementById("historyTruck").innerHTML='<option value="">すべて</option>'+trucks.map(t=>`<option>${t}</option>`).join("");
+ document.getElementById("transferMaterial").innerHTML=materials.map(m=>`<option>${m}</option>`).join("");
+ document.getElementById("historyMaterial").innerHTML='<option value="">すべて</option>'+materials.map(m=>`<option>${m}</option>`).join("");
+ document.getElementById("setupButtons").innerHTML=trucks.map(t=>`<button class="${t===setupTruck?"primary":"secondary"}" onclick="selectSetup('${t}')">🚚 ${t}</button>`).join("");
+}
+function listFor(t){return cloudData[t]||materials.map(m=>({material:m,quantity:0,note:""}))}
 function renderHome(){
-  const d=getData(),th=getThresholds(),h=getHistory(); let all=0,low=0;
-  document.getElementById("truckCards").innerHTML=trucks.map(t=>{
-    let total=0,lows=0;materials.forEach(m=>{total+=Number(d[t][m].qty)||0;if(d[t][m].qty<th[m])lows++});all+=total;low+=lows;
-    return `<div class="card truck-card" onclick="openTruck('${t}')"><h3>🚚 ${t}</h3><div class="total">${total}</div><div class="metric">資材合計</div><div class="alert ${lows?"warn":"ok"}">${lows?`不足 ${lows}項目`:"不足なし"}</div></div>`
-  }).join("");
-  document.getElementById("allTotal").textContent=all;
-  document.getElementById("lowTotal").textContent=low;
-  document.getElementById("todayUpdates").textContent=h.filter(x=>x.date===today()).length;
+ document.getElementById("truckCards").innerHTML=trucks.map(t=>{
+  const total=listFor(t).reduce((s,x)=>s+(Number(x.quantity)||0),0);
+  return `<div class="card truck-card" onclick="document.getElementById('truck').value='${t}';showPage('manage')"><h3>🚚 ${t}</h3><div class="total">${total}</div><small>資材合計</small></div>`;
+ }).join("");
 }
-function openTruck(t){document.getElementById("manageTruck").value=t;showPage("manage")}
 function renderManage(){
-  const t=document.getElementById("manageTruck").value||trucks[0],d=getData(),th=getThresholds();
-  document.getElementById("manageTitle").textContent=t+" 資材一覧";
-  document.getElementById("manageBody").innerHTML=materials.map(m=>{
-    const x=d[t][m],low=x.qty<th[m];
-    return `<tr><td data-label="資材名"><strong>${m}</strong></td><td data-label="数量" class="qty">${x.qty}</td><td data-label="状態"><span class="status ${low?"low":"ok"}">${low?"不足":"適正"}</span></td><td data-label="増減"><div class="actions"><button class="btn btn-success" onclick="openChange('${m}',1)">＋</button><button class="btn btn-danger" onclick="openChange('${m}',-1)">－</button></div></td><td data-label="備考"><input value="${esc(x.note)}" onchange="saveNote('${m}',this.value)"></td></tr>`
-  }).join("");
+ const t=document.getElementById("truck").value||trucks[0];
+ document.getElementById("manageTitle").textContent=t+" 資材管理点検票";
+ document.getElementById("manageBody").innerHTML=listFor(t).map(x=>`<tr>
+ <td>${x.material}</td><td class="qty">${x.quantity}</td>
+ <td class="actions no-print"><button class="plus" onclick="changeQty('${x.material}',1)">＋</button><button class="minus" onclick="changeQty('${x.material}',-1)">－</button></td>
+ <td><input value="${esc(x.note)}" onchange="saveExact('${x.material}',${x.quantity},this.value)"></td></tr>`).join("");
 }
-function openChange(m,dir){pending={material:m,dir};document.getElementById("changeTitle").textContent=`${m}を${dir>0?"追加":"減少"}`;document.getElementById("changeQty").value=1;document.getElementById("changeNote").value="";document.getElementById("changeModal").classList.add("show")}
-function closeModal(){document.getElementById("changeModal").classList.remove("show");pending=null}
-function confirmChange(){
-  if(!pending)return;const qty=Math.max(1,parseInt(document.getElementById("changeQty").value||"1")),t=document.getElementById("manageTruck").value,staff=document.getElementById("manageStaff").value||"未入力",date=document.getElementById("manageDate").value||today(),note=document.getElementById("changeNote").value,d=getData(),before=d[t][pending.material].qty,after=Math.max(0,before+pending.dir*qty);d[t][pending.material].qty=after;saveData(d);
-  const h=getHistory();h.unshift({type:"増減",date,time:stamp(),truck:t,material:pending.material,before,after,change:after-before,staff,note});saveHistory(h);closeModal();renderManage();renderHome()
+async function changeQty(material,dir){
+ const t=document.getElementById("truck").value,staff=document.getElementById("staff").value||"未入力";
+ const item=listFor(t).find(x=>x.material===material),next=Math.max(0,(Number(item.quantity)||0)+dir);
+ try{await apiPost({action:"updateMaterial",truck:t,material,quantity:next,note:item.note||"",staff});msg("数量を更新しました");await refresh()}catch(e){msg(e.message,"error")}
 }
-function saveNote(m,n){const t=document.getElementById("manageTruck").value,d=getData();d[t][m].note=n;saveData(d)}
-function resetTruck(){const t=document.getElementById("manageTruck").value;if(!confirm(`${t}を初期化しますか？`))return;const d=getData();materials.forEach(m=>d[t][m]={qty:0,note:""});saveData(d);renderManage();renderHome()}
-
-function executeTransfer(){
-  const from=document.getElementById("fromTruck").value,to=document.getElementById("toTruck").value,m=document.getElementById("transferMaterial").value,q=Math.max(1,parseInt(document.getElementById("transferQty").value||"1")),staff=document.getElementById("transferStaff").value||"未入力",note=document.getElementById("transferNote").value;
-  if(from===to)return alert("移動元と移動先を別の号車にしてください。");
-  const d=getData();if(d[from][m].qty<q)return alert(`${from}の${m}が不足しています。`);
-  d[from][m].qty-=q;d[to][m].qty+=q;saveData(d);
-  const h=getHistory();h.unshift({type:"移動",date:today(),time:stamp(),truck:`${from}→${to}`,material:m,before:"-",after:q,change:0,staff,note});saveHistory(h);
-  alert("資材を移動しました。");renderHome();
+async function saveExact(material,quantity,note){
+ const t=document.getElementById("truck").value,staff=document.getElementById("staff").value||"未入力";
+ try{await apiPost({action:"updateMaterial",truck:t,material,quantity,note,staff});msg("備考を保存しました");await refresh()}catch(e){msg(e.message,"error")}
 }
-function renderSetupButtons(){
-  const wrap=document.getElementById("setupTruckButtons");
-  wrap.innerHTML=trucks.map(t=>`
-    <button class="btn ${t===setupTruck?"btn-primary":"btn-secondary"}" onclick="selectSetupTruck('${t}')">🚚 ${t}</button>
-  `).join("");
+async function transfer(){
+ const payload={action:"transferMaterial",fromTruck:fromTruck.value,toTruck:toTruck.value,material:transferMaterial.value,quantity:Number(transferQty.value),staff:transferStaff.value||"未入力",note:transferNote.value||""};
+ try{await apiPost(payload);msg("資材を移動しました");await refresh()}catch(e){msg(e.message,"error")}
 }
-function selectSetupTruck(t){
-  setupTruck=t;
-  renderSetupButtons();
-  renderSetup();
-  loadSetup();
-}
+function selectSetup(t){setupTruck=t;fillSelects();renderSetup()}
 function renderSetup(){
-  document.getElementById("setupTitle").textContent=`${setupTruck} 初期数入力`;
-  document.getElementById("setupArea").innerHTML=`
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>資材名</th><th>初期数</th></tr></thead>
-        <tbody>
-          ${materials.map(m=>`
-            <tr>
-              <td data-label="資材名">${m}</td>
-              <td data-label="初期数"><input type="number" min="0" id="s_${m}"></td>
-            </tr>`).join("")}
-        </tbody>
-      </table>
-    </div>`;
+ document.getElementById("setupTitle").textContent=setupTruck+" 初期数入力";
+ document.getElementById("setupBody").innerHTML=listFor(setupTruck).map(x=>`<tr><td>${x.material}</td><td><input type="number" min="0" id="q_${x.material}" value="${x.quantity}"></td><td><input id="n_${x.material}" value="${esc(x.note)}"></td></tr>`).join("");
 }
-function loadSetup(){
-  const d=getData();
-  materials.forEach(m=>{
-    const el=document.getElementById(`s_${m}`);
-    if(el) el.value=d[setupTruck][m].qty;
-  });
+async function saveSetup(){
+ const items=materials.map(m=>({material:m,quantity:Number(document.getElementById("q_"+m).value)||0,note:document.getElementById("n_"+m).value||""}));
+ try{await apiPost({action:"saveTruck",truck:setupTruck,items,staff:"初期設定"});msg(setupTruck+"を保存しました");await refresh()}catch(e){msg(e.message,"error")}
 }
-function clearSetup(){
-  materials.forEach(m=>{
-    const el=document.getElementById(`s_${m}`);
-    if(el) el.value=0;
-  });
-}
-function saveSetup(){
-  if(!confirm(`${setupTruck}の初期数を保存しますか？`))return;
-  const d=getData();
-  materials.forEach(m=>{
-    d[setupTruck][m].qty=Math.max(0,parseInt(document.getElementById(`s_${m}`).value||"0"));
-  });
-  saveData(d);
-  const h=getHistory();
-  h.unshift({
-    type:"初期設定",
-    date:today(),
-    time:stamp(),
-    truck:setupTruck,
-    material:"全資材",
-    before:"-",
-    after:"登録",
-    change:0,
-    staff:"初期設定",
-    note:""
-  });
-  saveHistory(h);
-  alert(`${setupTruck}の初期数を保存しました。`);
-  renderHome();
-}
-
 function renderHistory(){
-  const tf=document.getElementById("historyTruck").value,mf=document.getElementById("historyMaterial").value,df=document.getElementById("historyDate").value;
-  let h=getHistory().filter(x=>(!tf||String(x.truck).includes(tf))&&(!mf||x.material===mf)&&(!df||x.date===df));
-  document.getElementById("historyList").innerHTML=h.length?h.map(x=>`<div class="history-item"><strong>${x.type}｜${x.truck}｜${x.material}</strong><br>${x.before} → ${x.after}${x.change?`（${x.change>0?"+":""}${x.change}）`:""}${x.note?`｜${esc(x.note)}`:""}<br><small>${x.date} ${x.time}｜担当：${esc(x.staff)}</small></div>`).join(""):'<div class="empty">該当する履歴はありません</div>'
+ const tf=historyTruck.value,mf=historyMaterial.value;
+ const h=historyData.filter(x=>(!tf||String(x.truck).includes(tf))&&(!mf||x.material===mf));
+ document.getElementById("historyList").innerHTML=h.length?h.map(x=>`<div class="history-item"><strong>${x.type}｜${x.truck}｜${x.material}</strong><br>${x.before} → ${x.after}${x.note?"｜"+esc(x.note):""}<br><small>${x.date} ${x.time}｜担当：${esc(x.staff)}</small></div>`).join(""):"履歴はありません";
 }
-function clearHistory(){if(confirm("履歴をすべて削除しますか？")){localStorage.removeItem("proHistory");renderHistory();renderHome()}}
-
-function renderThresholds(){const th=getThresholds();document.getElementById("thresholdBody").innerHTML=materials.map(m=>`<tr><td data-label="資材名">${m}</td><td data-label="不足判定基準"><input type="number" min="0" id="th_${m}" value="${th[m]}"></td></tr>`).join("")}
-function saveThresholds(){const th={};materials.forEach(m=>th[m]=Math.max(0,parseInt(document.getElementById(`th_${m}`).value||"0")));localStorage.setItem("proThresholds",JSON.stringify(th));alert("基準を保存しました。");renderHome()}
-function exportData(){const blob=new Blob([JSON.stringify({data:getData(),history:getHistory(),thresholds:getThresholds()},null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="資材管理バックアップ.json";a.click();URL.revokeObjectURL(a.href)}
-function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(x.data)localStorage.setItem("proData",JSON.stringify(x.data));if(x.history)localStorage.setItem("proHistory",JSON.stringify(x.history));if(x.thresholds)localStorage.setItem("proThresholds",JSON.stringify(x.thresholds));alert("読み込みました。");location.reload()}catch{alert("読み込みに失敗しました。")}};r.readAsText(f)}
-
-function printManagePage(){
-  const dateValue=document.getElementById("manageDate").value||today();
-  const truckValue=document.getElementById("manageTruck").value||trucks[0];
-  const staffValue=document.getElementById("manageStaff").value.trim()||"";
-
-  document.getElementById("printDate").textContent=dateValue.replaceAll("-","/");
-  document.getElementById("printTruck").textContent=truckValue;
-  document.getElementById("printStaff").textContent=staffValue;
-  document.getElementById("manageTitle").textContent=`${truckValue} 資材管理点検票`;
-
-  window.print();
-
-  setTimeout(()=>{
-    document.getElementById("manageTitle").textContent=`${truckValue} 資材一覧`;
-  },100);
-}
-
-document.getElementById("manageDate").value=today();
-fillSelects();renderSetupButtons();renderSetup();loadSetup();renderHome();renderManage();renderThresholds();
-["historyTruck","historyMaterial","historyDate"].forEach(id=>document.getElementById(id).addEventListener("change",renderHistory));
-document.getElementById("manageTruck").addEventListener("change",renderManage);
+document.getElementById("date").value=today();
+fillSelects();
+document.getElementById("truck").addEventListener("change",renderManage);
+refresh();
 </script>
 </body>
 </html>
