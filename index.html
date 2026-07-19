@@ -181,7 +181,9 @@ async function transfer(){
 function selectSetup(t){setupTruck=t;fillSelects();renderSetup()}
 function renderSetup(){
  document.getElementById("setupTitle").textContent=setupTruck+" 初期数入力";
- document.getElementById("setupBody").innerHTML=listFor(setupTruck).map(x=>`<tr><td>${x.material}</td><td><input type="number" min="0" id="q_${x.material}" value="${x.quantity}"></td><td><input id="n_${x.material}" value="${esc(x.note)}"></td></tr>`).join("");
+ document.getElementById("setupBody").innerHTML=listFor(setupTruck).map(x=>`<tr><td>${x.material}</td><td><input type="number" min="0" id="q_${x.material}" value="${x.quantity}"
+onfocus="if(this.value==='0'){this.value='';}else{this.select();}"
+onblur="if(this.value===''){this.value='0';}"></td><td><input id="n_${x.material}" value="${esc(x.note)}"></td></tr>`).join("");
 }
 async function saveSetup(){
  const items=materials.map(m=>({material:m,quantity:Number(document.getElementById("q_"+m).value)||0,note:document.getElementById("n_"+m).value||""}));
